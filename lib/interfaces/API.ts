@@ -10,5 +10,11 @@ export interface Competition {
     name: string;
     location: string;
     date: Date;
-    schedule: any;
+    schedules: Schedule[];
+}
+
+export interface Schedule {
+    unitName: string;
+    displayCity: string;
+    time: string;
 }
