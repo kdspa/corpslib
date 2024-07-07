@@ -1,9 +1,11 @@
+import Base from './Base';
 import { ICorps } from '../interfaces/API';
 
-export default class Corps {
+export default class Corps extends Base {
     private _data: ICorps;
     
     constructor(api_obj: ICorps) {
+        super();
         this._data = api_obj;
     }
 
