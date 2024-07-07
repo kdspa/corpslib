@@ -1,6 +1,6 @@
 import { IVenue } from '../interfaces/API';
 
-export class Venue {
+export default class Venue {
     private _data: IVenue;
 
     constructor(api_obj: IVenue) {

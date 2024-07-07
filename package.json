@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/kdspa/dci-api/issues"
   },
-  "homepage": "https://github.com/kdspa/dci-api#readme"
+  "homepage": "https://github.com/kdspa/dci-api#readme",
+  "devDependencies": {
+    "@types/node": "^20.14.10"
+  }
 }

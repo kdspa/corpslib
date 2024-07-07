@@ -1,4 +1,4 @@
-export interface Corps {
+export interface ICorps {
     id: string;
     name: string;
     type: string;
@@ -18,7 +18,7 @@ export interface Corps {
     auditions: string;
 };
 
-export interface Event {
+export interface IEvent {
     id: string;
     name: string;
     slug: string;
@@ -32,20 +32,81 @@ export interface Event {
     thumbnail: string;
     startDate: string;
     startTime: string;
-    schedules: Schedule[];
-    venue: Venue;
+    schedules: ISchedule[];
+    venue: IVenue;
     image: string;
     ticketingMapImage: string;
     googleMapsImage: string;
-}
+};
 
-export interface Schedule {
+export interface ISchedule {
     unitName: string;
     displayCity: string;
     time: string;
+};
+
+export interface ICompetition {
+    scores: Score[];
 }
 
-export interface Venue {
+interface Score {
+    categories: CaptionCategory[];
+    divisionName: string;
+    round: string;
+    groupName: string;
+    orgGroupIdentifier: string;
+    totalScore: number;
+    rank: number;
+    subtotalScore: number;
+    subtotalRank: number;
+    active: boolean;
+    isOtherType: boolean;
+    competition: Competition;
+}
+
+interface Competition {
+    groupTypes: GroupType[];
+    eventName: string;
+    location: string;
+    date: string;
+    competitionLevel: number;
+    chiefJudge: string;
+    scoresReleased: boolean;
+    recapReleased: boolean;
+    seasonName: string;
+    slug: string;
+}
+
+interface GroupType {
+    id: number;
+    name: string;
+}
+
+interface CaptionCategory {
+    captions: Caption[];
+    name: string;
+    score: string;
+    rank: number;
+}
+interface Caption {
+    subCaptions: SubCaption[];
+    judgeFirstName: string;
+    judgeLastName: string;
+    judge: number;
+    name: string;
+    initials: string;
+    score: string;
+    rank: string;
+}
+
+interface SubCaption {
+    name: string;
+    initials: string;
+    score: string;
+    rank: number;
+}
+
+export interface IVenue {
     name: string;
     address: string;
     zipcode: string;
@@ -78,4 +139,4 @@ export interface Venue {
     marketplaceElectricity: string;
     bagPolicyDescription: string;
     cashless: boolean;
-}
+};
