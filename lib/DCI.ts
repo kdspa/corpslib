@@ -1,6 +1,7 @@
 import https, { RequestOptions } from 'https';
-import { version } from '../package.json';
+// import { version } from '../package.json';
 import * as Endpoints from './Endpoints';
+import { Base, Competition, Corps, Event, Venue } from './structures';
 import { ICorps, IEvent, ISchedule, IVenue } from './interfaces/API';
 
 
@@ -19,14 +20,16 @@ export class DCIClient {
     /**
      * Create a new API client
      */
-    constructor() {
+    constructor(options?: any) {
         this.options = Object.assign({
             api: {
                 headers: {
-                    "User-Agent": `kdspa/CorpsLib v${version}  - https://github.com/kdspa/corpslib`,
+                    "User-Agent": `kdspa/CorpsLib v1.0.0  - https://github.com/kdspa/corpslib`,
                 }
             }
-        });
+        },
+        options
+        );
 
         this.ratelimit = {
 			remaining: 60,
@@ -46,7 +49,12 @@ export class DCIClient {
      * @param name Event name
      * @param season Season (year)
      */
-    public getEvent(name: string, season?: string) {}
+    public getEvent(name: string, season?: string): any {
+        return this._queueRequest<IEvent>(
+			"GET",
+			Endpoints.EVENTS(name, season)
+		).then((event) => new Event(event));
+    }
 
     /**
      * Get a list of competitions
@@ -89,7 +97,7 @@ export class DCIClient {
             };
 
             this.requestQueue.push(actualCall);
-            this._advanceQueue;
+            this._advanceQueue();
         })
     }
 

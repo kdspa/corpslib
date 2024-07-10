@@ -1,5 +1,5 @@
 {
-  "name": "dci-api",
+  "name": "corpslib",
   "version": "1.0.0",
   "description": "A wrapper for the Drum Corps International (DCI) API.",
   "main": "index.js",
