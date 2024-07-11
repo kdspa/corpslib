@@ -1,48 +1,27 @@
-import https, { RequestOptions } from 'https';
-// import { version } from '../package.json';
 import * as Endpoints from './Endpoints';
+import RequestHandler from './RequestHandler';
 import { Base, Competition, Corps, Event, Venue } from './structures';
 import { ICorps, IEvent, ISchedule, IVenue } from './interfaces/API';
 
-
-export interface Ratelimit {
-	limit: number;
-	remaining: number;
-	localRemaining: number;
-	reset: Date;
-}
-
 export class DCIClient {
-    private options: any;
-    private requestQueue: (() => Promise<any>)[] = [];
-    private ratelimit: Ratelimit;
+    private requestHandler: RequestHandler;
 
     /**
      * Create a new API client
      */
     constructor(options?: any) {
-        this.options = Object.assign({
-            api: {
-                headers: {
-                    "User-Agent": `kdspa/CorpsLib v1.0.0  - https://github.com/kdspa/corpslib`,
-                }
-            }
-        },
-        options
-        );
-
-        this.ratelimit = {
-			remaining: 60,
-			localRemaining: 60,
-			limit: 60,
-			reset: new Date()
-		};
+        this.requestHandler = new RequestHandler();
     }
 
     /**
      * Get a list of upcoming events
      */
-    public getEvents() {}
+    public getEvents() {
+        return this.requestHandler.queue<IEvent>(
+            'GET',
+            Endpoints.EVENTS()
+        ).then((event) => new Event(event));
+    }
 
     /**
      * Get a event
@@ -50,9 +29,9 @@ export class DCIClient {
      * @param season Season (year)
      */
     public getEvent(name: string, season?: string): any {
-        return this._queueRequest<IEvent>(
+        return this.requestHandler.queue<IEvent>(
 			"GET",
-			Endpoints.EVENTS(name, season)
+			Endpoints.EVENT(name, season)
 		).then((event) => new Event(event));
     }
 
@@ -66,7 +45,12 @@ export class DCIClient {
      * @param name Competition name
      * @param season Season (year)
      */
-    public getCompetition(name: string, season?: string) {}
+    public getCompetition(name: string, season?: string) {
+        return this.requestHandler.queue<Competition>(
+            'GET',
+            Endpoints.COMPETITION(name, season)
+        ).then((comp) => new Competition(comp));
+    }
 
     /** 
      * Get a list of corps registered with DCI
@@ -77,7 +61,12 @@ export class DCIClient {
      * Get a specific corps 
      * @param name Corps name
     */
-    public getCorps(name: string) {}
+    public getCorps(name: string) {
+        return this.requestHandler.queue<ICorps>(
+            'GET',
+            Endpoints.CORPS(name)
+        ).then((corps) => new Corps(corps));
+    }
 
     /**
      * Get sponsors
@@ -89,80 +78,4 @@ export class DCIClient {
      * @param name Sponsor name
      */
     public getSponsor(name: string) {}
-
-    private _queueRequest<T>(method: string, endpoint: string, data?: any) {
-        return new Promise<T>((resolve, reject) => {
-            const actualCall = async () => {
-                await this._makeRequest<T>(method, endpoint, data).then(resolve, reject);
-            };
-
-            this.requestQueue.push(actualCall);
-            this._advanceQueue();
-        })
-    }
-
-    private async _advanceQueue() {
-        // No more requests
-        if (this.requestQueue.length === 0) return;
-
-        if (this.ratelimit.localRemaining > 0) {
-            // Not ratelimited, keep making requests
-            const jobs = this.requestQueue.splice(0, this.ratelimit.localRemaining);
-            this.ratelimit.localRemaining -= jobs.length;
-            await Promise.allSettled(jobs.map((job) => job()));
-            if (this.ratelimit.localRemaining > this.ratelimit.remaining) {
-                this.ratelimit.localRemaining = this.ratelimit.remaining;
-            }
-            return;
-        }
-
-        // Ratelimited, wait
-        const waitTime = this.ratelimit.reset.getTime() - Date.now();
-        setTimeout(() => {
-            this.ratelimit.remaining = this.ratelimit.limit;
-            this.ratelimit.localRemaining = this.ratelimit.limit;
-            this._advanceQueue();
-        }, waitTime);
-    }
-
-    private _makeRequest<T>(method: string, path: string, body: any | string = null): Promise<T> {
-        return new Promise((fulfill, reject) => {
-            let data = '';
-            const req = https.request(
-                path,
-                Object.assign({ method: method }, this.options.api),
-                (res) => {
-                    this.ratelimit.remaining = Number(res.headers['x-ratelimit-remaining']);
-					this.ratelimit.limit = Number(res.headers['x-ratelimit-limit']);
-					this.ratelimit.reset = new Date(Number(res.headers['x-ratelimit-reset']) * 1000);
-
-                    res.on('data', (chunk) => {
-                        data += chunk;
-                    });
-
-                    res.on('end', () => {
-                        if (res.statusCode === 200) {
-                            fulfill(JSON.parse(data) as T);
-                        } else {
-                            reject(Object.assign({ statusCode: res.statusCode }, JSON.parse(data)));
-                        }
-                    });
-
-                    res.on('error', (e) => {
-                        reject(e);
-                    })
-                }
-            );
-            
-            if (!body) {
-                req.end();
-            } else {
-                if (typeof body == 'object') {
-                    req.end(JSON.stringify(body));
-                } else {
-                    req.end(body);
-                }
-            }
-        });
-    }
 }

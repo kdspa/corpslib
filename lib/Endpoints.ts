@@ -1,6 +1,10 @@
-export const BASE = 'https://api.dci.org/api/v1';
+export const BASE = 'api/v1';
 
-export const COMPETITIONS =  (season?: string, competition?: string) => `${BASE}/competitions${season !== undefined ? `?season=${season}` : ''}${competition !== undefined ? `/${competition}` : ''}`;
-export const CORPS = (name?: string) => `${BASE}/corps${name!== undefined ? `/${name}` : ''}`;
-export const EVENTS = (event?: string, season?: string) => `${BASE}/events${event !== undefined ? `/${event}` : ''}`;
-export const SPONSORS = (sponsor?: string) => `${BASE}/sponsors${sponsor !== undefined ? `/${sponsor}` : ''}`;
+export const COMPETITIONS =                        (season?: string)  => `/competitions${season !== undefined ? `?season=${season}` : ''}`;
+export const COMPETITION =    (competition: string, season?: string)  => `/competitions${season!== undefined ? `?season=${season}` : ''}/${competition}`
+export const CORPS_LIST =                                                `/corps`;
+export const CORPS =                                   (name: string) => `/corps/${name}`;
+export const EVENTS =                               (season?: string) => `/events${season !== undefined ? `?season=${season}` : ''}`;
+export const EVENT =                (event?: string, season?: string) => `/events${season !== undefined ? `?season=${season}` : ''}/${event}`;
+export const SPONSORS =                                                  `/sponsors`;
+export const SPONSOR =                              (sponsor: string) => `/sponsors/${sponsor}`;
