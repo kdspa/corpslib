@@ -1,5 +1,3 @@
-import { parse } from 'node-html-parser';
-import https from 'https';
 import { DCIClient } from './dist/DCI.js';
 
 let options = {
