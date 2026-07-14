@@ -7,9 +7,8 @@ export default class Event extends Base {
 
     constructor(data: any) {
         super();
-
         this._data = this.format(data);
-    };
+    };  
 
     /**
      * Returns event name
@@ -96,38 +95,39 @@ export default class Event extends Base {
     }
 
     public format(data: any): IEvent {
-        console.log(data);
-        const $ = cheerio.load(data);   
+        const $ = cheerio.load(data.data);
         let meta: IEvent = {
-            name: $('h1.inner-hero-inner').text(),
-            location: $('span.location').text(),
-            timezone: $('p.lineup-times-table').text().replace('All times ', '').replace(' and subject to change.', ''),
+            name: $('div.inner-hero-inner > h1').text() || '',
+            location: $('span.location').text().trim() || '',
+            timezone: $('div.lineup-times-table > div.common-dis > p').text().replace('All times ', '').replace(' and subject to change', '') || '',
             tickets: $('.buy-tickets-btn a.btn').attr('href') || '',
-            ticketsOnSale: '',
-            sponsor: $('.event-sponsor').text(),
+            ticketsOnSale: '', // I don't know what this will look like in the HTML yet
+            sponsor: $('.event-sponsor').text().replace('Presented by ', '') || '',
             livestream: $('.buy-tickets-btn .watch-live').attr('href') || '',
-            image: $('img.hero-section').attr('src') || '',
-            startDate: $('p.inner-hero-inner').text().split(' ').slice(0, -2).join(' '),
-            startTime: $('p.inner-hero-inner').text().split(' ').slice(-2).join(' '),
+            image: $('div.hero-section > img').attr('src') || '',
+            startDate: $('div.inner-hero-inner > p').text().split(' ').slice(0, -2).join(' ') || '',
+            startTime: $('div.inner-hero-inner > p').text().split(' ').slice(-2).join(' ').trim() || '',
             lineup: [],
             venue: {
-                name: $('address.address-info').text().split('<br>')[0] || '',
-                address: $('address.address-info').text().split('<br>')[1] || '',
-                city: $('address.address-info').text().split('<br>')[2] || '',
+                name: $('div.address-info > address').html()!.toString().trim().split('<br>')[0] || '',
+                address: $('div.address-info > address').html()!.toString().trim().split('<br>')[1] || '',
+                city: $('div.address-info > address').html()!.toString().trim().split('<br>')[2] || '',
             },
         };
-        let table = $('table.table-responsive-common-table')
+        let table = $('table > tbody');
         let lineup = [];
-        let rows = table.find('tr')
+        let rows = table.find('tr');
         for (let row of rows) {
-            let cells = $(row).children('td').toArray();
             const rowData = {
-                time: $(cells[0]).text(),
-                name: $(cells[1]).text().split(' - ').slice(0, -1).join(' '),
-                location: $(cells[2]).text().split(' - ').slice(-1).join(' ') || '',
+                time: $(row).find('td').html() || '',
+                name: $(row).find('td > strong').text() || '',
+                location: '',
             };
+            $(row).find('td > strong').remove();
+            rowData.location = $(row).find('td:contains(" -")').text().slice(3) || '';
             lineup.push(rowData);
         };
+        meta.lineup = lineup;
         return meta;
     }
 };

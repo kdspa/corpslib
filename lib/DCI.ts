@@ -18,7 +18,6 @@ export class DCIClient {
         this.axios.createClient(options)
         this.client = this.axios.client;
         this.requestHandler = new RequestHandler(this.client);
-        console.log(this.client);
     }
 
     /**
