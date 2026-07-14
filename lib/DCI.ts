@@ -1,56 +1,43 @@
 import * as Endpoints from './Endpoints';
+import AxiosClient from './AxiosClient';
 import RequestHandler from './RequestHandler';
-import { Base, Competition, Corps, Event, Venue } from './structures';
-import { ICorps, IEvent, ISchedule, IVenue } from './interfaces/API';
+import type { AxiosInstance } from 'axios';
+import { Base, Competition, Corps, Event, Sponsor, Venue } from './structures';
+import { ICorps, IEvent, ISchedule, ISponsor, IVenue } from './interfaces/API';
 
 export class DCIClient {
+    private axios: AxiosClient
+    public client: AxiosInstance
     private requestHandler: RequestHandler;
 
     /**
      * Create a new API client
      */
     constructor(options?: any) {
-        this.requestHandler = new RequestHandler();
+        this.axios = new AxiosClient();
+        this.axios.createClient(options)
+        this.client = this.axios.client;
+        this.requestHandler = new RequestHandler(this.client);
+        console.log(this.client);
     }
 
     /**
      * Get a list of upcoming events
      */
     public getEvents() {
-        return this.requestHandler.queue<IEvent>(
-            'GET',
-            Endpoints.EVENTS()
-        ).then((event) => new Event(event));
-    }
+        let event = this.requestHandler.queue('GET', Endpoints.EVENTS);
+        return new Event(event);
+    };
 
     /**
      * Get a event
      * @param name Event name
      * @param season Season (year)
      */
-    public getEvent(name: string, season?: string): any {
-        return this.requestHandler.queue<IEvent>(
-			"GET",
-			Endpoints.EVENT(name, season)
-		).then((event) => new Event(event));
-    }
-
-    /**
-     * Get a list of competitions
-     */
-    public getCompetitions() {}
-
-    /**
-     * Get a competition
-     * @param name Competition name
-     * @param season Season (year)
-     */
-    public getCompetition(name: string, season?: string) {
-        return this.requestHandler.queue<Competition>(
-            'GET',
-            Endpoints.COMPETITION(name, season)
-        ).then((comp) => new Competition(comp));
-    }
+    public async getEvent(name: string): Promise<Event> {
+        let event = await this.requestHandler.queue('GET', Endpoints.EVENT(name));
+		return new Event(event);
+    };
 
     /** 
      * Get a list of corps registered with DCI
@@ -61,21 +48,22 @@ export class DCIClient {
      * Get a specific corps 
      * @param name Corps name
     */
-    public getCorps(name: string) {
-        return this.requestHandler.queue<ICorps>(
-            'GET',
-            Endpoints.CORPS(name)
-        ).then((corps) => new Corps(corps));
-    }
+    // public getCorps(name: string) {
+    //     let corps = this.requestHandler.queue('GET', Endpoints.CORPS(name));
+    //   return new Corps(corps);
+    // }
 
     /**
      * Get sponsors
      */
-    public getSponsors() {}
+    // public getSponsors() {}
 
     /**
      * Get a sponsor
      * @param name Sponsor name
      */
-    public getSponsor(name: string) {}
+    // public getSponsor(name: string) { // Need to actually create the sponsor class lol
+    //     let sponsor = this.requestHandler.queue('GET', Endpoints.SPONSOR(name))
+    //     return new Sponsor(sponsor);
+    // }
 }

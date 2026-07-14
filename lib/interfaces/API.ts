@@ -19,30 +19,24 @@ export interface ICorps {
 };
 
 export interface IEvent {
-    id: string;
     name: string;
-    slug: string;
-    locationCity: string;
-    locationState: string;
+    location: string;
     timezone: string;
     tickets: string;
     ticketsOnSale: string;
     sponsor: string;
     livestream: string;
-    thumbnail: string;
+    image: string;
     startDate: string;
     startTime: string;
-    schedules: ISchedule[];
+    lineup: ISchedule[];
     venue: IVenue;
-    image: string;
-    ticketingMapImage: string;
-    googleMapsImage: string;
 };
 
 export interface ISchedule {
-    unitName: string;
-    displayCity: string;
     time: string;
+    name: string;
+    location: string;
 };
 
 export interface ICompetition {
@@ -109,34 +103,7 @@ interface SubCaption {
 export interface IVenue {
     name: string;
     address: string;
-    zipcode: string;
-    fieldHashmarks: boolean;
-    fieldHashmarksType: string;
-    goalPosts: boolean;
-    fieldElectricity: boolean;
-    americanFlagLocation: string;
-    tunnelHeight: string;
-    videoBoard: boolean;
-    accessToBoxOffice: boolean;
-    airConditioning: boolean;
-    clearBagVenue: boolean;
-    marketplaceLocation: string;
-    bagPolicy: string;
-    spectatorEntrance: string;
-    spectatorReEntry: string;
-    willCallLocation: string;
-    concessions: string;
-    ambulanceLocation: string;
-    micsOnField: string;
-    soundOrdinance?: string;
-    ticketTakers: string;
-    boxOfficeVolunteers: boolean;
-    ushers: string;
-    security: string;
-    seatNumbering: false;
-    seatSize: string;
-    marketplaceType: string;
-    marketplaceElectricity: string;
-    bagPolicyDescription: string;
-    cashless: boolean;
+    city: string;
 };
+
+export interface ISponsor {}

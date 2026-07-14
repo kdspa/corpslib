@@ -1,5 +1,7 @@
 import https, { RequestOptions } from 'https';
+import type { AxiosInstance, AxiosResponse } from 'axios';
 import * as Endpoints from './Endpoints';
+import * as cheerio from 'cheerio';
 
 export interface Ratelimit {
 	limit: number;
@@ -9,24 +11,15 @@ export interface Ratelimit {
 }
 
 export default class RequestHandler {
-    public userAgent: string;
-    private options: any;
+    public client: AxiosInstance;
     private requestQueue: (() => Promise<any>)[] = [];
     private ratelimit: Ratelimit;
 
     /**
      * Create a new RequestHandler client
      */
-    constructor(options?: any) {
-        this.options = Object.assign({
-            baseURL: Endpoints.BASE,
-            domain: 'api.dci.org',
-        },
-        options
-        );
-
-        this.userAgent = `kdspa/CorpsLib v${require('../package.json').version} - https://github.com/kdspa/corpslib,`;
-
+    constructor(client: AxiosInstance, options?: any) {
+        this.client = client;
         this.ratelimit = {
             remaining: 60,
             localRemaining: 60,
@@ -35,16 +28,10 @@ export default class RequestHandler {
         };
     }
 
-    public queue<T>(method: string, endpoint: string, data?: any) {
-        return new Promise<T>((resolve, reject) => {
-            const actualCall = async () => {
-                await this.request<T>(method, endpoint, data).then(resolve, reject);
-            };
+    public async queue(method: string, endpoint: string, data?: any): Promise<AxiosResponse> {
+        return await this.request(method, endpoint, data);
+    };
 
-            this.requestQueue.push(actualCall);
-            this.advanceQueue();
-        })
-    }
 
     private async advanceQueue() {
         // No more requests
@@ -70,45 +57,8 @@ export default class RequestHandler {
         }, waitTime);
     }
 
-    private request<T>(method: string, path: string, body: any | string = null): Promise<T> {
-        let url = `https://${this.options.domain}/${this.options.baseURL}` + path;
-        return new Promise((fulfill, reject) => {
-            let data = '';
-            const req = https.request(
-                url,
-                Object.assign({ method: method, 'User-Agent': this.userAgent }),
-                (res) => {
-                    this.ratelimit.remaining = Number(res.headers['x-ratelimit-remaining']);
-                    this.ratelimit.limit = Number(res.headers['x-ratelimit-limit']);
-                    this.ratelimit.reset = new Date(Number(res.headers['x-ratelimit-reset']) * 1000);
-
-                    res.on('data', (chunk) => {
-                        data += chunk;
-                    });
-
-                    res.on('end', () => {
-                        if (res.statusCode === 200) {
-                            fulfill(JSON.parse(data) as T);
-                        } else {
-                            reject(Object.assign({ statusCode: res.statusCode }, JSON.parse(data)));
-                        }
-                    });
-
-                    res.on('error', (e) => {
-                        reject(e);
-                    })
-                }
-            );
-            
-            if (!body) {
-                req.end();
-            } else {
-                if (typeof body == 'object') {
-                    req.end(JSON.stringify(body));
-                } else {
-                    req.end(body);
-                }
-            }
-        });
-    }
+    private async request(method: string, path: string, data?: any): Promise<AxiosResponse> {
+        const response = await this.client.request({ method: method, url: path });
+        return response;
+    };
 }

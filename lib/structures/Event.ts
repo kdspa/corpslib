@@ -1,20 +1,15 @@
 import Base from './Base';
 import { IEvent } from '../interfaces/API';
+import * as cheerio from 'cheerio';
 
 export default class Event extends Base {
     private _data: IEvent;
 
-    constructor(api_obj: IEvent) {
+    constructor(data: any) {
         super();
-        this._data = api_obj;
-    };
 
-    /**
-     * Returns event ID
-     */
-    get id() {
-        return this._data.id;
-    }
+        this._data = this.format(data);
+    };
 
     /**
      * Returns event name
@@ -24,24 +19,10 @@ export default class Event extends Base {
     }
 
     /**
-     * Returns event url slug
-     */
-    get slug() {
-        return this._data.slug;
-    }
-
-    /**
      * Returns event city
      */
-    get locationCity() {
-        return this._data.locationCity;
-    }
-
-    /**
-     * Returns event state
-     */
-    get locationState() {
-        return this._data.locationState;
+    get location() {
+        return this._data.location;
     }
 
     /**
@@ -79,13 +60,6 @@ export default class Event extends Base {
         return this._data.livestream;
     }
 
-    /**
-     * Event thumbnail
-     */
-    get thumbnail() {
-        return this._data.thumbnail;
-    }
-
     /** 
      * Event start date 
      */
@@ -101,10 +75,10 @@ export default class Event extends Base {
     }
 
     /**
-     * Returns event schedule
+     * Returns event lineup
      */
-    get schedules() {
-        return this._data.schedules;
+    get lineup() {
+        return this._data.lineup;
     }
 
     /**
@@ -121,17 +95,39 @@ export default class Event extends Base {
         return this._data.image;
     }
 
-    /**
-     * Ticket map image
-     */
-    get ticketingMapImage() {
-        return this._data.ticketingMapImage;
+    public format(data: any): IEvent {
+        console.log(data);
+        const $ = cheerio.load(data);   
+        let meta: IEvent = {
+            name: $('h1.inner-hero-inner').text(),
+            location: $('span.location').text(),
+            timezone: $('p.lineup-times-table').text().replace('All times ', '').replace(' and subject to change.', ''),
+            tickets: $('.buy-tickets-btn a.btn').attr('href') || '',
+            ticketsOnSale: '',
+            sponsor: $('.event-sponsor').text(),
+            livestream: $('.buy-tickets-btn .watch-live').attr('href') || '',
+            image: $('img.hero-section').attr('src') || '',
+            startDate: $('p.inner-hero-inner').text().split(' ').slice(0, -2).join(' '),
+            startTime: $('p.inner-hero-inner').text().split(' ').slice(-2).join(' '),
+            lineup: [],
+            venue: {
+                name: $('address.address-info').text().split('<br>')[0] || '',
+                address: $('address.address-info').text().split('<br>')[1] || '',
+                city: $('address.address-info').text().split('<br>')[2] || '',
+            },
+        };
+        let table = $('table.table-responsive-common-table')
+        let lineup = [];
+        let rows = table.find('tr')
+        for (let row of rows) {
+            let cells = $(row).children('td').toArray();
+            const rowData = {
+                time: $(cells[0]).text(),
+                name: $(cells[1]).text().split(' - ').slice(0, -1).join(' '),
+                location: $(cells[2]).text().split(' - ').slice(-1).join(' ') || '',
+            };
+            lineup.push(rowData);
+        };
+        return meta;
     }
-
-    /**
-     * Static Google maps image for venue location
-     */
-    get googleMapsImage() {
-        return this._data.googleMapsImage;
-    }
-}
+};
